@@ -27,9 +27,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -50,22 +49,28 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
+@TeleOp(name="Iterative OpMode", group="Iterative Opmode")
 
 //@Disabled
-public class BasicOpMode_Iterative extends OpMode
+public class TeleOpMode extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
 
+    double leftPower;
+    double rightPower;
+    double drive;
+    double turn;
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
-    public void init() {
-        telemetry.addData("Status", "Initialized");
+    public void init()
+    {
+        Robot.getTelemetry().addData("Status", "Initialized");
+        Robot.getTelemetry().addLine("BRUHHHHHHHHHHHHHH");
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -79,24 +84,25 @@ public class BasicOpMode_Iterative extends OpMode
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
+        Robot.getTelemetry().addData("Status", "Initialized");
     }
 
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
      */
     @Override
-    public void init_loop() {
-    }
+    public void init_loop()
+    {
 
+    }
     /*
      * Code to run ONCE when the driver hits PLAY
      */
     @Override
-    public void start() {
-        runtime.reset();
+    public void start()
+    {
+        Robot.getRuntime().reset();
     }
-
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
@@ -104,31 +110,67 @@ public class BasicOpMode_Iterative extends OpMode
     public void loop()
     {
         // Setup a variable for each drive wheel to save power level for telemetry
-        double leftPower;
-        double rightPower;
 
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
 
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
-        double drive = -gamepad1.left_stick_y;
-        double turn  =  gamepad1.right_stick_x;
-        leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-        rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
+        switch(Robot.getDriveMode())
+        {
+            case Arcade:
+                drive = -gamepad1.left_stick_y;
+                turn = gamepad1.right_stick_x;
+                leftPower = Range.clip(drive + turn, -1.0, 1.0);
+                rightPower = Range.clip(drive - turn, -1.0, 1.0);
+
+                Robot.getLeftFrontDrive().setPower(leftPower);
+                Robot.getLeftBackDrive().setPower(leftPower);
+                Robot.getRightBackDrive().setPower(rightPower);
+                Robot.getRightFrontDrive().setPower(rightPower);
+                break;
+
+            case Tank:
+                leftPower  = -gamepad1.left_stick_y ;
+                rightPower = -gamepad1.right_stick_y ;
+
+                Robot.getLeftFrontDrive().setPower(leftPower);
+                Robot.getLeftBackDrive().setPower(leftPower);
+                Robot.getRightBackDrive().setPower(rightPower);
+                Robot.getRightFrontDrive().setPower(rightPower);
+                break;
+            case Mecanum:
+                double rightX = gamepad1.right_stick_x;
+                double leftX = gamepad1.left_stick_x;
+                double leftY = -gamepad1.left_stick_y;
+
+                double robotSpeed = Math.pow(leftX, 2) + Math.pow(leftY, 2);
+                robotSpeed = Math.sqrt(robotSpeed);
+
+                double changeDirectionSpeed = -rightX;
+
+                double desiredRobotAngle = Math.atan2(-leftX, leftY);
+
+                double frontLeft = robotSpeed * Math.sin(-desiredRobotAngle + (Math.PI / 4)) - changeDirectionSpeed;
+                double frontRight = robotSpeed * Math.cos(-desiredRobotAngle + (Math.PI / 4)) + changeDirectionSpeed;
+                double backLeft = robotSpeed * Math.cos(-desiredRobotAngle + (Math.PI / 4)) - changeDirectionSpeed;
+                double backRight = robotSpeed * Math.sin(-desiredRobotAngle + (Math.PI / 4)) + changeDirectionSpeed;
+
+                Robot.getLeftFrontDrive().setPower(frontLeft);
+                Robot.getLeftBackDrive().setPower(backLeft);
+                Robot.getRightBackDrive().setPower(backRight);
+                Robot.getRightFrontDrive().setPower(frontRight);
+                break;
+        }
 
         // Tank Mode uses one stick to control each wheel.
         // - This requires no math, but it is hard to drive forward slowly and keep straight.
-        // leftPower  = -gamepad1.left_stick_y ;
-        // rightPower = -gamepad1.right_stick_y ;
 
         // Send calculated power to wheels
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
 
         // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        Robot.getTelemetry().addData("Status", "Run Time: " + runtime.toString());
+        Robot.getTelemetry().addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
     }
 
     /*
@@ -139,5 +181,4 @@ public class BasicOpMode_Iterative extends OpMode
     {
 
     }
-
 }
