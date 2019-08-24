@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 
@@ -58,15 +59,22 @@ public class AutoOpMode extends LinearOpMode
     double leftPower = 0;
     double rightPower = 0;
 
+    private ElapsedTime runtime = new ElapsedTime();
+    //private HardwareMap hardwareMap = new HardwareMap();
+    private TeleOpMode tOpMode = new TeleOpMode();
+    //private Telemetry telemetry = null;
+
+    private Robot robot = new Robot(hardwareMap, runtime, telemetry);
+
     @Override
     public void runOpMode()
     {
-        Robot.getTelemetry().addData("Status", "Initialized");
-        Robot.getTelemetry().update();
+        //Robot.getTelemetry().addData("Status", "Initialized");
+        //Robot.getTelemetry().update();
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-        Robot.getRuntime().reset();
+        robot.getRuntime().reset();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive())
@@ -90,15 +98,15 @@ public class AutoOpMode extends LinearOpMode
             // rightPower = -gamepad1.right_stick_y ;
 
             // Send calculated power to wheels
-            Robot.getLeftFrontDrive().setPower(leftPower);
-            Robot.getLeftBackDrive().setPower(leftPower);
-            Robot.getRightBackDrive().setPower(rightPower);
-            Robot.getRightFrontDrive().setPower(rightPower);
+            robot.getLeftFrontDrive().setPower(leftPower);
+            robot.getLeftBackDrive().setPower(leftPower);
+            robot.getRightBackDrive().setPower(rightPower);
+            robot.getRightFrontDrive().setPower(rightPower);
 
             // Show the elapsed game time and wheel power.
-            Robot.getTelemetry().addData("Status", "Run Time: " + Robot.getRuntime().toString());
-            Robot.getTelemetry().addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-            Robot.getTelemetry().update();
+            //Robot.getTelemetry().addData("Status", "Run Time: " + Robot.getRuntime().toString());
+            //Robot.getTelemetry().addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            //Robot.getTelemetry().update();
         }
     }
 }

@@ -31,7 +31,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -49,42 +48,66 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Iterative OpMode", group="Iterative Opmode")
+@TeleOp(name="Zatch TeleOp", group="Iterative Opmode")
 
 //@Disabled
 public class TeleOpMode extends OpMode
 {
-    // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private ElapsedTime runtime = null;
+    private Robot robot = null;
 
     double leftPower;
     double rightPower;
     double drive;
     double turn;
+
+    boolean yDown = false;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init()
     {
-        Robot.getTelemetry().addData("Status", "Initialized");
-        Robot.getTelemetry().addLine("BRUHHHHHHHHHHHHHH");
+        telemetry.addData("Status", "Started Initialization");
+        runtime = new ElapsedTime();
+        robot = new Robot(hardwareMap, runtime, telemetry);
+        robot.telemetry.addData("Status", "Finished Initialization");
+        /*//robot.getTelemetry().addData("Status", "Initialized");
+        //telemetry.addData("Status", "Initialized");
+
+        leftFrontDrive  = hardwareMap.get(DcMotor.class, "111leftFront");
+        leftBackDrive = hardwareMap.get(DcMotor.class, "leftBack");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFront");
+        rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");
+        //Robot.getTelemetry().addLine("BRUHHHHHHHHHHHHHH");
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        //leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        //rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        //leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        //rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
         // Tell the driver that initialization is complete.
-        Robot.getTelemetry().addData("Status", "Initialized");
+        //robot.getTelemetry().addData("Status", "Initialized");*/
+
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        //leftFrontDrive  = hardwareMap.get(DcMotor.class, "leftFront");
+        //rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFront");
+
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
+        //leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        //rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+
+        // Tell the driver that initialization is complete.
     }
 
     /*
@@ -101,7 +124,8 @@ public class TeleOpMode extends OpMode
     @Override
     public void start()
     {
-        Robot.getRuntime().reset();
+        //robot.getRuntime().reset();
+        runtime.reset();
     }
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
@@ -116,28 +140,28 @@ public class TeleOpMode extends OpMode
 
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
-        switch(Robot.getDriveMode())
+        switch(robot.getDriveMode())
         {
             case Arcade:
-                drive = -gamepad1.left_stick_y;
-                turn = gamepad1.right_stick_x;
+                drive = -gamepad1.right_stick_x;
+                turn = gamepad1.left_stick_y;
                 leftPower = Range.clip(drive + turn, -1.0, 1.0);
                 rightPower = Range.clip(drive - turn, -1.0, 1.0);
 
-                Robot.getLeftFrontDrive().setPower(leftPower);
-                Robot.getLeftBackDrive().setPower(leftPower);
-                Robot.getRightBackDrive().setPower(rightPower);
-                Robot.getRightFrontDrive().setPower(rightPower);
+                robot.getLeftFrontDrive().setPower(leftPower);
+                robot.getLeftBackDrive().setPower(leftPower);
+                robot.getRightBackDrive().setPower(rightPower);
+                robot.getRightFrontDrive().setPower(rightPower);
                 break;
 
             case Tank:
-                leftPower  = -gamepad1.left_stick_y ;
+                leftPower  = gamepad1.left_stick_y ;
                 rightPower = -gamepad1.right_stick_y ;
 
-                Robot.getLeftFrontDrive().setPower(leftPower);
-                Robot.getLeftBackDrive().setPower(leftPower);
-                Robot.getRightBackDrive().setPower(rightPower);
-                Robot.getRightFrontDrive().setPower(rightPower);
+                robot.getLeftFrontDrive().setPower(leftPower);
+                robot.getLeftBackDrive().setPower(leftPower);
+                robot.getRightBackDrive().setPower(rightPower);
+                robot.getRightFrontDrive().setPower(rightPower);
                 break;
             case Mecanum:
                 double rightX = gamepad1.right_stick_x;
@@ -156,11 +180,24 @@ public class TeleOpMode extends OpMode
                 double backLeft = robotSpeed * Math.cos(-desiredRobotAngle + (Math.PI / 4)) - changeDirectionSpeed;
                 double backRight = robotSpeed * Math.sin(-desiredRobotAngle + (Math.PI / 4)) + changeDirectionSpeed;
 
-                Robot.getLeftFrontDrive().setPower(frontLeft);
-                Robot.getLeftBackDrive().setPower(backLeft);
-                Robot.getRightBackDrive().setPower(backRight);
-                Robot.getRightFrontDrive().setPower(frontRight);
+                robot.getLeftFrontDrive().setPower(frontLeft);
+                robot.getLeftBackDrive().setPower(backLeft);
+                robot.getRightBackDrive().setPower(backRight);
+                robot.getRightFrontDrive().setPower(frontRight);
                 break;
+        }
+
+        if(gamepad1.y)
+        {
+            if(!yDown)
+            {
+                robot.switchDrive();
+                yDown = true;
+            }
+        }
+        else if(yDown)
+        {
+            yDown = false;
         }
 
         // Tank Mode uses one stick to control each wheel.
@@ -169,8 +206,8 @@ public class TeleOpMode extends OpMode
         // Send calculated power to wheels
 
         // Show the elapsed game time and wheel power.
-        Robot.getTelemetry().addData("Status", "Run Time: " + runtime.toString());
-        Robot.getTelemetry().addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        //robot.getTelemetry().addData("Status", "Run Time: " + runtime.toString());
+        //robot.getTelemetry().addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
     }
 
     /*
